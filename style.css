@@ -1,0 +1,116 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    flex-direction: column; /* Stack elements vertically */
+}
+
+#scene-container {
+    position: relative;
+    width: 80vw; /* Use viewport width */
+    max-width: 800px; /* Limit max width */
+    aspect-ratio: 16 / 9; /* Maintain aspect ratio */
+    border: 2px solid #333;
+    overflow: hidden; /* Ensure regions don't overflow */
+    background-color: #eee; /* Placeholder background */
+    margin-bottom: 20px; /* Add space below scene */
+}
+
+#scene-image {
+    display: block; /* Remove extra space below image */
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Cover the container */
+}
+
+#clickable-regions {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.clickable-region {
+    position: absolute;
+    border: 2px dashed rgba(255, 255, 255, 0.5); /* Transparent dashed border */
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    background-color: rgba(0, 0, 255, 0); /* Transparent initially */
+}
+
+.clickable-region:hover {
+    background-color: rgba(0, 0, 255, 0.2); /* Blue tint on hover */
+    border-color: rgba(255, 255, 255, 0.8); /* More opaque border */
+}
+
+#inventory {
+    width: 80vw; /* Match scene container width */
+    max-width: 800px; /* Match scene container max width */
+    background-color: #fff;
+    padding: 15px;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+#inventory h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+#collected-items-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 100px; /* Limit height */
+    overflow-y: auto; /* Add scroll if needed */
+}
+
+#collected-items-list li {
+    padding: 5px 0;
+}
+
+/* Loading Overlay */
+#loading-overlay {
+    position: fixed; /* Cover the entire viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: white;
+    z-index: 1000; /* Ensure it's on top */
+    opacity: 0; /* Start hidden */
+    visibility: hidden; /* Start hidden */
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+#loading-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.spinner {
+    border: 8px solid #f3f3f3; /* Light grey */
+    border-top: 8px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
