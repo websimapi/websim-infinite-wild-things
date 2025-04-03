@@ -1,4 +1,3 @@
-``` script.js
 import * as websim from "llm-calls";
 
 const sceneContainer = document.getElementById('scene-container');
@@ -44,7 +43,7 @@ async function analyzeImageForRegions(imageUrl) {
             messages: [
                 {
                     role: "system",
-                    content: `You are an assistant analyzing images for an interactive game based on "Where The Wild Things Are". Identify distinct objects, potential items to collect, interesting features, or paths/exits within the image. For each identified region, provide a name, a brief description, its type ('item', 'path', 'feature'), and its bounding box coordinates (top-left x, top-left y, width, height) as percentages relative to the image dimensions (0-100). Respond ONLY with a JSON object containing a list called "regions", where each element follows this schema: { "name": string, "description": string, "type": "item" | "path" | "feature", "coordinates": { "x": number, "y": number, "width": number, "height": number } }. Ensure coordinates are numbers between 0 and 100. Focus on 3-5 key interactive elements. Be imaginative and fit the whimsical, slightly wild theme.`,
+                    content: `You are an assistant analyzing images for an interactive game based on "Where The Wild Things Are". Identify distinct objects, potential items to collect, interesting features, or paths/exits within the image. For each identified region, provide a name, a brief description, its type ('item', 'path', 'feature'), and its bounding box coordinates (top-left x, top-left y, width, height) as percentages relative to the image dimensions (0-100). Respond ONLY with a JSON object containing a list called "regions", where each element follows this schema: { "name": string, "description": string, "type": "item" | "path" | "feature", "coordinates": { "x": number, "y": number, "width": number, "height": number } }. Ensure coordinates are numbers between 0 and 100. Focus on 3-5 key interactive elements. Be imaginative and fit the whimsical, slightly wild theme. Ensure the output is ONLY the JSON object, with no introductory text or explanations.`, 
                 },
                 {
                     role: "user",
@@ -54,19 +53,46 @@ async function analyzeImageForRegions(imageUrl) {
                     ],
                 },
             ],
-            json: true,
+            json: true, 
         });
 
-        const result = JSON.parse(completion.content);
-        console.log("Analysis result:", result);
-        return result.regions || []; // Ensure we always return an array
+        let responseContent = completion.content.trim();
+
+        const jsonStart = responseContent.indexOf('{');
+        const jsonEnd = responseContent.lastIndexOf('}');
+
+        if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+            responseContent = responseContent.substring(jsonStart, jsonEnd + 1);
+        } else {
+             console.error("LLM response does not appear to contain valid JSON structure:", completion.content);
+             alert("Failed to analyze the scene (invalid format received). Some elements might not be interactive.");
+             return [];
+        }
+
+        try {
+            const result = JSON.parse(responseContent);
+            console.log("Analysis result:", result);
+            if (result && Array.isArray(result.regions)) {
+                 return result.regions;
+             } else {
+                 console.error("Parsed JSON does not contain a 'regions' array:", result);
+                 alert("Failed to analyze the scene (unexpected structure received). Some elements might not be interactive.");
+                 return [];
+             }
+        } catch (parseError) {
+             console.error("Error parsing LLM JSON response:", parseError);
+             console.error("Invalid JSON string received:", responseContent); 
+             alert("Failed to analyze the scene (parsing error). Some elements might not be interactive.");
+             return [];
+        }
+
 
     } catch (error) {
         console.error("Error analyzing image:", error);
         alert("Failed to analyze the scene. Some elements might not be interactive.");
-        return []; // Return empty array on error
+        return []; 
     } finally {
-       // Loading overlay hidden after scene update
+       // Loading overlay hidden after scene update (handled in updateScene)
     }
 }
 
@@ -76,10 +102,8 @@ function updateScene() {
     console.log("Updating scene display");
     sceneImage.src = currentScene.imageUrl;
 
-    // Clear previous regions
     clickableRegionsContainer.innerHTML = '';
 
-    // Add new regions
     currentScene.regions.forEach(region => {
         const regionEl = document.createElement('div');
         regionEl.classList.add('clickable-region');
@@ -90,7 +114,7 @@ function updateScene() {
         regionEl.dataset.name = region.name;
         regionEl.dataset.description = region.description;
         regionEl.dataset.type = region.type;
-        regionEl.title = `${region.name}: ${region.description}`; // Tooltip on hover
+        regionEl.title = `${region.name}: ${region.description}`; 
 
         regionEl.addEventListener('click', handleRegionClick);
         clickableRegionsContainer.appendChild(regionEl);
@@ -101,7 +125,7 @@ function updateScene() {
 
 async function generateAndDisplayScene(prompt) {
     const imageUrl = await generateImage(prompt);
-    if (!imageUrl) return; // Stop if image generation failed
+    if (!imageUrl) return; 
 
     const regions = await analyzeImageForRegions(imageUrl);
 
@@ -129,21 +153,18 @@ function handleRegionClick(event) {
             if (!collectedItems.includes(name)) {
                 collectedItems.push(name);
                 updateInventoryUI();
-                // Optional: Visually indicate item collected (e.g., fade out)
                 regionEl.style.opacity = '0.3';
-                regionEl.style.pointerEvents = 'none'; // Prevent re-clicking
+                regionEl.style.pointerEvents = 'none'; 
                 alert(`Collected ${name}!`);
             } else {
                  alert(`You already collected ${name}.`);
             }
             break;
         case 'path':
-            // Generate a new scene prompt based on the path description or a more generic one
             const nextPrompt = `Following the path towards "${description}", leading to another scene in the style of Where The Wild Things Are, crayon drawing aesthetic. Current location described as: ${currentScene.prompt}`;
             generateAndDisplayScene(nextPrompt);
             break;
         case 'feature':
-            // Display description or trigger a small event
             alert(`You look closer at the ${name}. ${description}`);
             break;
         default:
@@ -155,7 +176,7 @@ function handleRegionClick(event) {
 // --- Inventory Management ---
 
 function updateInventoryUI() {
-    inventoryList.innerHTML = ''; // Clear list
+    inventoryList.innerHTML = ''; 
     if (collectedItems.length === 0) {
         const li = document.createElement('li');
         li.textContent = 'Nothing collected yet.';
@@ -174,7 +195,6 @@ function updateInventoryUI() {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log("DOM loaded, initializing game.");
-    updateInventoryUI(); // Show initial empty inventory
+    updateInventoryUI(); 
     generateAndDisplayScene(currentScene.prompt);
 });
-
